@@ -1,0 +1,96 @@
+@startuml
+
+hide struct methods
+skinparam linetype ortho
+
+package map
+{
+	struct Castle
+	{
+		+std::vector<Floor> levels
+	}
+
+	struct Floor
+	{
+		+std::vector<Room> rooms
+	}
+
+	struct Room
+	{
+		+std::vector<Tile> tiles
+	}
+
+	struct Save
+	{
+		+Castle castle
+	}
+
+	class Tile
+
+	Castle --> Floor
+	Floor --> Room
+	Room --> Tile
+	Save --> Castle
+}
+
+package items
+{
+	class Consumable
+	{
+		+void consume(Player& __player)
+	}
+
+	interface Item
+
+	class Weapon
+	{
+		+std::uint8_t damage()
+	}
+
+	Consumable --|> Item
+	Weapon --|> Item
+
+}
+
+package entities
+{
+	class Entity
+	{
+		-std::uint8_t life
+		__ Constructors __
+		+Entity()
+		+Entity(std::uint8_t life)
+		__ Life management __
+		+bool is_alive()
+		+bool is_dead()
+		+std::uint8_t life()
+		+void damage(std::uint8_t __damages)
+		+void heal(std::uint8_t __points)
+		+void kill()
+	}
+
+	class Hostile
+	{
+		+void attack(Entity& __target)
+	}
+
+	class NPC
+
+	class Passive
+	{
+		-std::string message
+		+std::string ask_with()
+	}
+
+	class Player
+
+	Hostile --|> NPC
+	NPC --|> Entity
+	Player --> items.Item
+	Player --|> Entity
+	Passive --|> NPC
+}
+
+class GameManager
+
+@enduml
