@@ -1,0 +1,60 @@
+@startuml
+
+skinparam linetype ortho
+
+start
+
+note
+	Entity behavior
+end note
+
+if (life <= 0) then (yes)
+	:kill the entity;
+else (no)
+end if
+
+stop
+
+start
+
+note
+	Hostile entity behavior
+end note
+
+while (the player is in the range)
+	if (the player is nearby) then (yes)
+		:attack the player;
+	else (too far)
+	end if
+end while
+
+stop
+
+start
+
+note
+	Player behavior
+end note
+
+fork
+	if (the player tries to use an item) then (yes)
+		if (the player has an item) then (yes)
+			:Use the item;
+		else (no)
+			:Message the player he has no item;
+		end if
+	else (no)
+	end if
+fork again
+	if (the player tries to attack) then (yes)
+		if (an hostile entity is in the range) then (yes)
+			:Attack the hostile entity;
+		else (no)
+		end if
+	else (no)
+	end if
+end fork
+
+stop
+
+@enduml
