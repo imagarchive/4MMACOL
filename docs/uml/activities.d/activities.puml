@@ -10,6 +10,7 @@ end note
 
 if (life <= 0) then (yes)
 	:kill the entity;
+	:Play death animation;
 else (no)
 end if
 
@@ -23,8 +24,11 @@ end note
 
 while (the player is in the range)
 	if (the player is nearby) then (yes)
-		:attack the player;
+		:Attack the player;
+		:Play attack animation (hostile entity);
 	else (too far)
+		:Move to the player;
+		:Play movement animation (hostile entity);
 	end if
 end while
 
@@ -53,6 +57,21 @@ fork again
 		end if
 	else (no)
 	end if
+fork again
+	if (the player is attacked) then (yes)
+		:Play attacked animation;
+		:Affect life;
+	else (no)
+	end if
+fork again
+	if (the player tries to discuss) then (yes)
+		if (a passive entity is in the range) the (yes)
+			:Print passive entity message;
+		else (no)
+		end if
+	else (no)
+		:Message the player he is speaking alone;
+	endif;
 end fork
 
 stop
