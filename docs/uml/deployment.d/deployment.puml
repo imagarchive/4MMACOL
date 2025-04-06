@@ -1,0 +1,38 @@
+@startuml
+!pragma layout smetana
+' Force plantuml to use internal layout engine
+
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+node "Client (PC/Mac/Linux)" {
+    [Godot Runtime] as GR
+    [C++ Core Logic Library] as CL
+    [SQLite Database] as DB
+    [Resources (Graphics/Audio)] as RS
+    [Game Executable] as GE
+    [Save Files] as SF
+    
+    GR -- CL
+    GR -- DB
+    GR -- RS
+    GR -- GE
+    DB -- SF
+}
+
+node "Development Environment" {
+    [Godot Editor] as GED
+    [C++ Compiler] as CC
+    [GDExtension API] as GDAPI
+    [Resource Processing Tools] as RPT
+    
+    GED -- CC
+    GED -- GDAPI
+    GED -- RPT
+}
+
+GED ..> GE : "Export"
+CC ..> CL : "Compile"
+RPT ..> RS : "Process"
+@enduml

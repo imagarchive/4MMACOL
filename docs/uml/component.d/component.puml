@@ -1,0 +1,50 @@
+@startuml
+!pragma layout smetana
+' Force plantuml to use internal layout engine
+
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+package "Core Game Logic (C++)" {
+    [GameManager] as GM
+    [EntitySystem] as ES
+    [CombatSystem] as CS
+    [InventorySystem] as IS
+    [WorldSystem] as WS
+    [SaveSystem] as SS
+}
+
+package "User Interface (Godot)" {
+    [UIManager] as UIM
+    [RenderingEngine] as RE
+    [InputHandler] as IH
+    [SoundManager] as SM
+}
+
+package "Data Model" {
+    [Entity] as ENT
+    [Player] as P
+    [NPC] as NPC
+    [Room] as R
+    [Item] as I
+    [Castle] as C
+}
+
+GM --> ES
+GM --> CS
+GM --> WS
+GM --> SS
+GM --> UIM
+ES --> ENT
+WS --> R
+WS --> C
+SS --> P
+SS --> C
+UIM --> RE
+UIM --> IH
+UIM --> SM
+IH --> GM : "SendCommands"
+RE --> ENT : "Renders"
+RE --> R : "Renders"
+@enduml

@@ -1,0 +1,37 @@
+@startuml
+actor Player
+participant "User Interface" as UI
+participant GameManager as GM
+participant Player as P
+participant Castle as C
+participant SaveSystem as S
+
+alt Save Game
+    Player -> UI: Request save
+    UI -> GM: requestSave()
+    GM -> P: getPlayerState()
+    P --> GM: playerState
+    GM -> C: getCastleState()
+    C --> GM: castleState
+    GM -> S: saveGame(playerState, castleState)
+    S -> S: serializeData()
+    S -> S: writeToFile()
+    S --> GM: saveSuccessful
+    GM --> UI: displaySaveConfirmation()
+    UI --> Player: "Save successful" message
+else Load Game
+    Player -> UI: Request load
+    UI -> GM: requestLoad()
+    GM -> S: loadGame()
+    S -> S: readFromFile()
+    S -> S: deserializeData()
+    S --> GM: gameData
+    GM -> P: restorePlayerState(playerState)
+    GM -> C: restoreCastleState(castleState)
+    P --> GM: playerRestored
+    C --> GM: castleRestored
+    GM --> UI: displayLoadedGame()
+    UI --> Player: Display loaded game
+end
+@enduml
+

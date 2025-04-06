@@ -1,0 +1,58 @@
+@startuml
+actor Player
+participant "User Interface" as UI
+participant GameManager as GM
+participant Player as P
+participant Castle as C
+participant Floor as F
+participant Room as R
+participant Item as I
+
+Joueur -> UI: Movement input
+UI -> GM: requestMove(direction)
+GM -> P: move(direction)
+P -> R: checkCollision(position, direction)
+R --> P: collision result
+
+alt No collision
+    P -> P: updatePosition()
+    P --> GM: moveSuccessful
+    GM --> UI: updatePlayerPosition()
+    UI --> Player: Move animation
+else Door collision
+    P -> R: requestRoomChange(doorId)
+    R -> F: getRoom(roomId)
+    F --> R: nextRoom
+    R --> P: roomChangeInfo
+    P -> P: changeRoom(roomInfo)
+    P --> GM: roomChanged
+    GM --> UI: displayNewRoom()
+    UI --> Joueur: Affiche nouvelle salle
+end
+
+Joueur -> UI: Interaction action
+UI -> GM: requestInteraction()
+GM -> P: interact()
+P -> R: getInteractiveAtPosition(position)
+R --> P: item
+
+alt Found Item
+    P -> I: interact()
+    I --> P: interactionResult
+    
+    alt Pickable Item
+        P -> P: addToInventory(item)
+        R -> R: removeItem(item)
+        P --> GM: itemCollected
+        GM --> UI: displayInventoryUpdate()
+        UI --> Joueur: Notification "Objet ramassé"
+    else Usable Item
+        I -> I: use()
+        I --> P: useEffect
+        P --> GM: itemUsed
+        GM --> UI: displayItemEffect()
+        UI --> Playeur: Object effect animation
+    end
+end
+@enduml
+

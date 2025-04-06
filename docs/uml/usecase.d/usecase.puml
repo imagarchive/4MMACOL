@@ -1,0 +1,40 @@
+@startuml
+!pragma layout smetana
+
+skinparam shadowing false
+skinparam usecaseArrowColor black
+skinparam usecaseBackgroundColor white
+skinparam usecaseBorderColor black
+skinparam actorBackgroundColor white
+skinparam actorBorderColor black
+skinparam rectangleBorderColor gray
+
+left to right direction
+skinparam actorStyle hollow
+
+actor "Player" as player
+rectangle "Castle Adventure Game" {
+  ' Purposely positioning similar to the image
+  usecase "Move the character" as UC1
+  usecase "Manage inventory" as UC4
+  usecase "Talk with NPCs" as UC5
+  usecase "Save/Load game" as UC9
+  usecase "Fight enemies" as UC3
+  usecase "Interact with objects" as UC2
+  usecase "Discover treasure" as UC8
+  usecase "Change room" as UC6
+  usecase "Go up/down floors" as UC7
+
+  UC4 ..> UC3 : <<include>>
+  UC2 <.. UC8 : <<extend>>
+}
+
+player --> UC4
+player --> UC5
+player --> UC9
+player --> UC3
+player --> UC2
+
+player --> UC1
+@enduml
+
