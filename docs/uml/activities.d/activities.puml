@@ -1,0 +1,79 @@
+@startuml
+
+skinparam linetype ortho
+
+start
+
+note
+	Entity behavior
+end note
+
+if (life <= 0) then (yes)
+	:kill the entity;
+	:Play death animation;
+else (no)
+end if
+
+stop
+
+start
+
+note
+	Hostile entity behavior
+end note
+
+while (the player is in the range)
+	if (the player is nearby) then (yes)
+		:Attack the player;
+		:Play attack animation (hostile entity);
+	else (too far)
+		:Move to the player;
+		:Play movement animation (hostile entity);
+	end if
+end while
+
+stop
+
+start
+
+note
+	Player behavior
+end note
+
+fork
+	if (the player tries to use an item) then (yes)
+		if (the player has an item) then (yes)
+			:Use the item;
+		else (no)
+			:Message the player he has no item;
+		end if
+	else (no)
+	end if
+fork again
+	if (the player tries to attack) then (yes)
+		if (an hostile entity is in the range) then (yes)
+			:Attack the hostile entity;
+		else (no)
+		end if
+	else (no)
+	end if
+fork again
+	if (the player is attacked) then (yes)
+		:Play attacked animation;
+		:Affect life;
+	else (no)
+	end if
+fork again
+	if (the player tries to discuss) then (yes)
+		if (a passive entity is in the range) the (yes)
+			:Print passive entity message;
+		else (no)
+		end if
+	else (no)
+		:Message the player he is speaking alone;
+	endif;
+end fork
+
+stop
+
+@enduml

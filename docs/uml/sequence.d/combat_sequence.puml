@@ -1,0 +1,56 @@
+@startuml
+actor Player
+participant "User Interface" as UI
+participant GameManager as GM
+participant Player as P
+participant Enemy as E
+participant Weapon as W
+
+Player -> UI: Attack action
+UI -> GM: requestAttack()
+GM -> P: attack()
+
+P -> P: getEquippedWeapon()
+P -> W: getDamage()
+W --> P: damage
+
+P -> GM: getTargetInRange()
+GM -> GM: findEnemiesInRange()
+GM --> P: enemiesInRange
+
+alt Enemy in range
+    P -> E: takeDamage(damage)
+    E -> E: updateHealth()
+    
+    alt Enemy defeated
+        E -> E: die()
+        E -> E: dropLoot()
+        E --> GM: enemyDefeated
+        GM --> UI: displayEnemyDefeat()
+        UI --> Player: Enemy death animation
+    else Enemy survives
+        E --> GM: enemyDamaged
+        GM --> UI: displayDamageEffect()
+        UI --> Player: Damage animation
+        
+        E -> P: counterAttack()
+        P -> P: takeDamage(enemyDamage)
+        P -> P: updateHealth()
+        
+        alt Player dies
+            P -> P: die()
+            P --> GM: playerDefeated
+            GM --> UI: displayGameOver()
+            UI --> Player: Game Over screen
+        else Player survives
+            P --> GM: playerDamaged
+            GM --> UI: updateHealthDisplay()
+            UI --> Player: Player damage animation
+        end
+    end
+else No enemy in range
+    P --> GM: noTarget
+    GM --> UI: displayMissAttack()
+    UI --> Player: Missed attack animation
+end
+@enduml
