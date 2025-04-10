@@ -1,56 +1,94 @@
 @startuml
 actor User
-participant "User Interface" as UI
+participant "Player (Node2D)" as P
+participant "UI (Control Node)" as UI
 participant GameManager as GM
-participant Player as P
-participant Enemy as E
+participant Armor as AR
+participant "Hostile (Enemy)" as E
 participant Weapon as W
 
-User -> UI: Attack action
-UI -> GM: requestAttack()
-GM -> P: attack()
+User -> P: Input event (attack key)
+P -> P: _input(event)
+P -> P: attack()
 
 P -> P: getEquippedWeapon()
-P -> W: getDamage()
-W --> P: damage
+P -> W: calculateDamage()
+W --> P: baseDamage
 
-P -> GM: getTargetInRange()
-GM -> GM: findEnemiesInRange()
-GM --> P: enemiesInRange
+P -> P: getTargetsInRange()
+P -> P: findEnemiesInRange()
+P --> P: enemiesInRange
 
 alt Enemy in range
     P -> E: takeDamage(damage)
+    
+    E -> E: getArmor()
+    E -> AR: calculateDamageReduction(damage)
+    AR --> E: reducedDamage
+    E -> E: applyDamage(reducedDamage)
+    
     E -> E: updateHealth()
+    
+    P -> P: playAttackSound(weaponType)
+    P -> P: displayAttackEffect()
+    P --> UI: renderAttackAnimation()
+    UI --> User: Attack animation and sound
     
     alt Enemy defeated
         E -> E: die()
-        E -> E: dropLoot()
-        E --> GM: enemyDefeated
-        GM --> UI: displayEnemyDefeat()
-        UI --> User: Enemy death animation
+        E -> E: generateLoot()
+        E -> E: emit_signal("enemy_defeated", loot)
+        E --> GM: handleEnemyDefeated(loot)
+        
+        GM -> P: gainExperience(xpReward)
+        P --> GM: experienceGained
+        
+        opt Item drops
+            GM -> R: spawnLoot(lootTable)
+            R --> GM: lootSpawned
+        end
+        
+        GM -> GM: playDefeatSound()
+        GM -> GM: displayDefeatEffect()
+        GM --> UI: displayEnemyDefeat(rewards)
+        UI --> User: Enemy defeat animation and rewards
     else Enemy survives
-        E --> GM: enemyDamaged
-        GM --> UI: displayDamageEffect()
-        UI --> User: Damage animation
+        E -> E: emit_signal("enemy_damaged", currentHealth)
+        E --> UI: displayDamageEffect()
+        UI --> User: Damage indication
         
-        E -> P: counterAttack()
-        P -> P: takeDamage(enemyDamage)
-        P -> P: updateHealth()
-        
-        alt User dies
-            P -> P: die()
-            P --> GM: playerDefeated
-            GM --> UI: displayGameOver()
-            UI --> User: Game Over screen
-        else User survives
-            P --> GM: playerDamaged
-            GM --> UI: updateHealthDisplay()
-            UI --> User: User damage animation
+        alt Enemy can counterattack
+            E -> E: determineAttack()
+            E -> P: counterAttack(attackType)
+            
+            P -> P: getArmor()
+            P -> AR: calculateDamageReduction(damage)
+            AR --> P: reducedDamage
+            P -> P: applyDamage(reducedDamage)
+            
+            P -> P: updateHealth()
+            
+            P -> P: playDamageSound()
+            P -> P: displayDamageEffect()
+            
+            alt Player defeated
+                P -> P: die()
+                P -> P: emit_signal("player_defeated")
+                P --> GM: handlePlayerDefeated()
+                GM -> GM: playGameOverMusic()
+                GM --> UI: displayGameOver()
+                UI --> User: Game Over screen with restart option
+            else Player survives
+                P -> P: emit_signal("player_damaged", currentHealth)
+                P --> UI: updateHealthDisplay(currentHealth)
+                UI --> User: Player damage animation
+            end
         end
     end
 else No enemy in range
-    P --> GM: noTarget
-    GM --> UI: displayMissAttack()
+    P -> P: emit_signal("attack_missed")
+    P --> UI: displayMissAttack()
     UI --> User: Missed attack animation
 end
 @enduml
+

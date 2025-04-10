@@ -1,57 +1,113 @@
 @startuml
 actor User
-participant "User Interface" as UI
+participant "Player (Node2D)" as P
+participant "UI (Control Node)" as UI
 participant GameManager as GM
-participant Player as P
 participant Castle as C
 participant Floor as F
 participant Room as R
+participant Tile as T
+participant NPC as N
 participant Item as I
 
-Joueur -> UI: Movement input
-UI -> GM: requestMove(direction)
-GM -> P: move(direction)
-P -> R: checkCollision(position, direction)
-R --> P: collision result
+User -> P: Input event (direction key)
+P -> P: _input(event)
+P -> P: move(direction)
+P -> R: getTileAt(newPosition)
+R --> P: tile
 
-alt No collision
+alt No obstacle (Floor tile)
     P -> P: updatePosition()
-    P --> GM: moveSuccessful
-    GM --> UI: updatePlayerPosition()
+    P -> P: emit_signal("moved")
+    P --> UI: updatePlayerPosition()
     UI --> User: Move animation
 else Door collision
-    P -> R: requestRoomChange(doorId)
-    R -> F: getRoom(roomId)
+    P -> T: interact()
+    T -> R: requestRoomChange(doorId)
+    R -> F: getRoom(doorId)
     F --> R: nextRoom
     R --> P: roomChangeInfo
     P -> P: changeRoom(roomInfo)
-    P --> GM: roomChanged
+    P -> P: emit_signal("room_changed")
+    P --> GM: handleRoomChanged()
+    GM -> R: loadEntities()
     GM --> UI: displayNewRoom()
-    UI --> Joueur: Affiche nouvelle salle
+    UI --> User: Display new room with transition
+else Stairs collision
+    P -> T: interact()
+    T -> F: requestFloorChange(floorId, roomId)
+    F -> C: getFloor(floorId)
+    C --> F: nextFloor
+    F -> F: getRoom(roomId)
+    F --> T: floorChangeInfo
+    T --> P: floorChangeInfo
+    P -> P: changeFloor(floorChangeInfo)
+    P -> P: emit_signal("floor_changed")
+    P --> GM: handleFloorChanged()
+    GM -> C: loadCurrentFloor()
+    GM -> F: loadCurrentRoom()
+    GM --> UI: displayNewFloor()
+    UI --> User: Display new floor with transition
+else Wall or obstacle
+    P -> P: emit_signal("movement_blocked")
+    P --> UI: playBlockedAnimation()
+    UI --> User: Blocked movement feedback
 end
 
-Joueur -> UI: Interaction action
-UI -> GM: requestInteraction()
-GM -> P: interact()
+User -> P: Input event (interaction key)
+P -> P: _input(event)
+P -> P: interact()
 P -> R: getInteractiveAtPosition(position)
-R --> P: item
+R --> P: interactiveObject
 
-alt Found Item
+alt Is Item
     P -> I: interact()
-    I --> P: interactionResult
     
-    alt Pickable Item
-        P -> P: addToInventory(item)
-        R -> R: removeItem(item)
-        P --> GM: itemCollected
-        GM --> UI: displayInventoryUpdate()
-        UI --> Joueur: Notification "Objet ramassé"
-    else Usable Item
-        I -> I: use()
-        I --> P: useEffect
-        P --> GM: itemUsed
-        GM --> UI: displayItemEffect()
-        UI --> User: Object effect animation
+    alt Weapon
+        I --> P: weaponInfo
+        P -> P: equipWeapon(weaponInfo)
+        P -> P: emit_signal("weapon_equipped")
+        P --> UI: displayWeaponChange()
+        UI --> User: "Equipped weapon" notification
+    else Consumable
+        I --> P: consumableInfo
+        P -> P: useConsumable(consumableInfo)
+        P -> P: emit_signal("item_consumed", effect)
+        P --> UI: displayItemEffect()
+        UI --> User: Item effect animation
+    else KeyItem
+        I --> P: keyItemInfo
+        P -> P: addToInventory(keyItemInfo)
+        R -> R: removeItem(keyItemInfo)
+        P -> P: emit_signal("key_item_collected")
+        P --> UI: displayInventoryUpdate()
+        UI --> User: "Key item collected" notification
+    end
+else Is NPC
+    P -> N: interact()
+    
+    alt Passive NPC
+        N -> N: startDialog()
+        N -> N: emit_signal("dialog_started", dialogInfo)
+        N --> UI: displayDialog(dialogInfo)
+        UI --> User: Dialog interface
+        
+        User -> UI: Dialog choice
+        UI -> N: processResponse(choice)
+        N -> N: evaluateResponse(choice)
+        N --> P: dialogResults(rewards, quests)
+        
+        opt New Quest
+            P -> QL: addQuest(questInfo)
+            P -> P: emit_signal("quest_received")
+            P --> UI: displayNewQuest()
+            UI --> User: "New quest" notification
+        end
+    else Hostile NPC
+        N -> N: initiateHostility()
+        N -> N: emit_signal("combat_initiated")
+        N --> UI: displayCombatStart()
+        UI --> User: Combat initialization animation
     end
 end
 @enduml
