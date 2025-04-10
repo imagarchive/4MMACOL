@@ -1,0 +1,24 @@
+{
+    "configurations": [
+      {
+        "name": "linux-clang-x64",
+        "includePath": [
+          "${workspaceFolder}/**",
+          "${workspaceFolder}/src/**",
+          "${workspaceFolder}/godot-cpp/include/**",
+          "${workspaceFolder}/godot-cpp/include/godot_cpp/**",
+          "${workspaceFolder}/godot-cpp/gdextension",
+          "${workspaceFolder}/godot-cpp/gen/include",
+          "${workspaceFolder}/godot-cpp/include",
+          "${workspaceFolder}/src",
+          "./godot-cpp/gen/**"
+        ],
+        "defines": [],
+        "compilerPath": "/usr/bin/g++",
+        "cStandard": "c17",
+        "cppStandard": "gnu++17",
+        "intelliSenseMode": "linux-clang-x64"
+      }
+    ],
+    "version": 4
+  }
