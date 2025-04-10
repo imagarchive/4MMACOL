@@ -1,0 +1,66 @@
+@startuml
+actor User
+participant "Player" as P
+participant "AnimatedSprite2D (Player)" as PS
+participant "Npc (Enemy)" as N
+participant "AnimatedSprite2D (NPC)" as NS
+
+' Séquence d'attaque du joueur
+User -> P: Input event (X key)
+activate P
+P -> P: handle_input()
+P -> P: attack()
+P -> PS: play("attack_[direction]")
+
+note over P: détection des ennemis dans la zone d'attaque
+P -> P: get_tree()->get_nodes_in_group("Enemies")
+
+alt Ennemi dans le rayon d'attaque
+    P -> N: take_damage(25)
+    activate N
+    N -> N: hp -= damage
+    
+    alt Enemy hp <= 0
+        N -> N: die()
+        N -> NS: play("die_[direction]")
+        N -> N: is_dying = true
+        N -> N: après death_timer, queue_free()
+    else Enemy survit
+        N -> N: hurt()
+        N -> NS: play("hurt_[direction]")
+        N -> N: is_hurt = true
+    end
+    deactivate N
+end
+deactivate P
+
+' Séquence de contre-attaque de l'ennemi
+note over N: Logique pour l'ennemi
+activate N
+N -> N: _physics_process(delta)
+N -> N: find_path()
+
+alt Player à portée (<64.0)
+    N -> N: attack()
+    N -> NS: play("attack_[direction]")
+    N -> P: take_damage(10)
+    activate P
+    
+    P -> P: hp -= damage
+    
+    alt Player hp <= 0
+        P -> P: die()
+        P -> PS: play("die_[direction]")
+        P -> P: is_dying = true
+    else Player survit
+        P -> P: hurt()
+        P -> PS: play("hurt_[direction]")
+        P -> P: is_hurt = true
+    end
+    deactivate P
+else Player hors de portée
+    N -> N: suivre le chemin vers le joueur
+    N -> NS: play("walk_[direction]")
+end
+deactivate N
+@enduml

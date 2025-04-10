@@ -1,0 +1,74 @@
+@startuml
+actor User
+participant "Player" as P
+participant "AnimatedSprite2D (Player)" as PS
+participant "Room" as R
+participant "Npc (Enemy)" as N
+participant "AnimatedSprite2D (NPC)" as NS
+
+' Séquence de déplacement du joueur
+User -> P: Input event (direction key)
+activate P
+P -> P: handle_input(delta)
+P -> P: direction = Input::get_singleton()->get_vector()
+
+alt Touche Shift pressée
+    P -> P: speed = base_speed * sprint_multiplier
+else
+    P -> P: speed = base_speed
+end
+
+alt Direction.length() > 0
+    P -> P: direction = direction.normalized()
+    P -> P: last_valid_direction = direction
+    P -> P: set_velocity(direction * speed)
+    P -> P: move_and_slide()
+    P -> PS: set_sprite_animation()
+    
+    alt direction.x > 0
+        P -> PS: play("walk_right")
+    else direction.x < 0
+        P -> PS: play("walk_left")
+    else direction.y > 0
+        P -> PS: play("walk_down")
+    else direction.y < 0
+        P -> PS: play("walk_up")
+    end
+    
+    PS --> User: Animation de mouvement
+    
+    ' Réaction des NPCs au mouvement du joueur
+    note over N: Dans _physics_process
+    N -> N: find_path()
+    N -> N: path_to_player = a_star->get_point_path()
+    
+    alt Distance vers joueur < 64.0
+        N -> N: attack()
+        N -> NS: play("attack_[direction]")
+        N -> P: take_damage(10)
+    else Sur le chemin du joueur
+        N -> N: direction = next_point - current_pos
+        N -> N: direction = direction.normalized()
+        N -> N: last_valid_direction = direction
+        N -> N: set_velocity(direction * speed)
+        N -> N: move_and_slide()
+        N -> NS: set_sprite_animation()
+    end
+end
+
+alt Touche X pressée
+    P -> P: attack()
+    P -> PS: play("attack_[direction]")
+    P -> P: get_tree()->get_nodes_in_group("Enemies")
+    
+    alt Ennemi à portée
+        P -> N: take_damage(25)
+    end
+end
+
+alt Touche R pressée (reset position)
+    P -> P: set_position(Vector2(20, 20))
+end
+
+deactivate P
+@enduml

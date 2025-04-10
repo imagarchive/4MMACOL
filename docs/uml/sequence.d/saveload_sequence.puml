@@ -1,37 +1,66 @@
 @startuml
 actor User
-participant "User Interface" as UI
+participant "UI (Control Node)" as UI
 participant GameManager as GM
 participant Player as P
 participant Castle as C
+participant QuestLog as QL
 participant SaveSystem as S
 
 alt Save Game
-    User -> UI: Request save
+    User -> UI: Press save button
     UI -> GM: requestSave()
     GM -> P: getPlayerState()
-    P --> GM: playerState
+    P --> GM: playerState (health, position, inventory)
     GM -> C: getCastleState()
-    C --> GM: castleState
-    GM -> S: saveGame(playerState, castleState)
+    C --> GM: castleState (rooms, entities, objects)
+    GM -> QL: getQuestState()
+    QL --> GM: questState
+    
+    GM -> S: saveGame(playerState, castleState, questState)
     S -> S: serializeData()
-    S -> S: writeToFile()
-    S --> GM: saveSuccessful
-    GM --> UI: displaySaveConfirmation()
-    UI --> User: "Save successful" message
+    
+    alt Successful Save
+        S -> S: writeToFile()
+        S --> GM: saveSuccessful
+        GM --> UI: displaySaveConfirmation()
+        UI --> User: "Save successful" message
+    else Save Failed
+        S --> GM: saveFailed(error)
+        GM --> UI: displaySaveError(error)
+        UI --> User: "Save failed" message with error details
+    end
 else Load Game
-    User -> UI: Request load
+    User -> UI: Press load button
     UI -> GM: requestLoad()
+    GM -> UI: confirmLoad()
+    UI --> User: "Confirm load? Progress will be lost"
+    
+    User -> UI: Confirm load
+    UI -> GM: executeLoad()
+    
     GM -> S: loadGame()
     S -> S: readFromFile()
-    S -> S: deserializeData()
-    S --> GM: gameData
-    GM -> P: restorePlayerState(playerState)
-    GM -> C: restoreCastleState(castleState)
-    P --> GM: playerRestored
-    C --> GM: castleRestored
-    GM --> UI: displayLoadedGame()
-    UI --> User: Display loaded game
+    
+    alt Successful Load
+        S -> S: deserializeData()
+        S --> GM: gameData (playerState, castleState, questState)
+        
+        GM -> P: restorePlayerState(playerState)
+        GM -> C: restoreCastleState(castleState)
+        GM -> QL: restoreQuestState(questState)
+        
+        P --> GM: playerRestored
+        C --> GM: castleRestored
+        QL --> GM: questsRestored
+        
+        GM -> GM: initializeGameState()
+        GM --> UI: displayLoadedGame()
+        UI --> User: Display loaded game
+    else Load Failed
+        S --> GM: loadFailed(error)
+        GM --> UI: displayLoadError(error)
+        UI --> User: "Load failed" message with error details
+    end
 end
 @enduml
-
