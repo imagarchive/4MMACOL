@@ -69,7 +69,6 @@ package map
 	{
 		__ Fields __
 		-TileType type
-		-Vector2 position
 		-bool is_walkable
 		-items.Item* item
 		__ Methods __
@@ -214,10 +213,6 @@ package entities
 		__ Speed fields __
 		-double speed
 		-double max_speed
-		__ Position fields __
-		-Vector2 position
-		+void set_position(Vector2 __new_position)
-		+Vector2 get_position() const
 		__ Inventory management __
 		-std::vector<items.Item *> inventory
 		+void add_item(items.Item& __item)
@@ -244,12 +239,10 @@ package entities
 		-int grid_size
 		-bool is_attacking
 		-double attack_timer
-		-std::string dialogue
 		__ Methods __
 		+void find_path()
 		+void attack()
 		+void interact(Player& __player)
-		+std::string get_dialogue()
 		__ Constructor & destructor __
 		+NPC()
 		+~NPC()
@@ -258,7 +251,7 @@ package entities
 	class Passive
 	{
 		-std::string message
-		+std::string ask_with(Player& __player)
+		+void ask_with(Player& __player)
 		+void give_quest(Player& __player)
 		+void complete_quest(Player& __player)
 	}
@@ -266,9 +259,10 @@ package entities
 	class Player
 	{
 		__ Fields __
+		-PlayerModifiers player_modifiers
+		-PlayerStats player_stats
+		-PlayerStatus player_status
 		-std::vector<items.Item*> equipped_items
-		-int experience_points
-		-int level
 		__ Methods __
 		#void attack()
 		+void equip_item(items.Item& __item)
@@ -288,7 +282,6 @@ package entities
 		+float sprint_multiplier
 		+double attack_timer
 		+double hurt_timer
-		+void apply_modifiers(Player& __player)
 	}
 
 	struct PlayerStats
@@ -296,22 +289,24 @@ package entities
 		+int xp
 		+int max_xp
 		+int lvl
-		+void update_stats(Player& __player)
 	}
 
 	struct PlayerStatus
 	{
 		+bool is_attacking
 		+bool is_hurt
-		+void update_status(Player& __player)
 	}
 
 	class Quest
 	{
-		+std::string name
-		+std::string description
-		+std::vector<std::string> objectives
-		+bool is_completed
+		__ Fields __
+		-std::string name
+		-std::string description
+		-std::vector<std::string> objectives
+		-bool is_completed
+		__ Methods __
+		std::string get_name()
+		std::string get_description()
 		+void start_quest(Player& __player)
 		+void complete_quest(Player& __player)
 		+void add_objective(std::string __objective)
@@ -320,7 +315,9 @@ package entities
 
 	class QuestLog
 	{
-		+std::vector<Quest> quests
+		__ Fields __
+		-std::vector<Quest> quests
+		__ Methods __
 		+void add_quest(Quest& __quest)
 		+void remove_quest(Quest& __quest)
 		+std::vector<Quest> get_active_quests()
