@@ -1,5 +1,5 @@
 @startuml
-actor Player
+actor User
 participant "User Interface" as UI
 participant GameManager as GM
 participant Player as P
@@ -18,7 +18,7 @@ alt No collision
     P -> P: updatePosition()
     P --> GM: moveSuccessful
     GM --> UI: updatePlayerPosition()
-    UI --> Player: Move animation
+    UI --> User: Move animation
 else Door collision
     P -> R: requestRoomChange(doorId)
     R -> F: getRoom(roomId)
@@ -51,7 +51,7 @@ alt Found Item
         I --> P: useEffect
         P --> GM: itemUsed
         GM --> UI: displayItemEffect()
-        UI --> Playeur: Object effect animation
+        UI --> User: Object effect animation
     end
 end
 @enduml
