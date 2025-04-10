@@ -1,0 +1,4 @@
+[gd_scene format=3 uid="uid://daf3bpr0k3u4"]
+
+[node name="Npc" type="Npc"]
+position = Vector2(163, 88)

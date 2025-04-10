@@ -54,6 +54,7 @@ void Entity::die(){
     // to be overriden in each subclass
     // the player's death could trigger a restart, show a score idk
     // mob death despawns the mob, leaves loot, adds exp to the player
+    queue_free();
 }
 
 void Entity::set_hp(int value){

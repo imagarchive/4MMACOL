@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3 uid="uid://bvyilw0qj32fp"]
+
+[ext_resource type="PackedScene" uid="uid://cc0iwlaxuoemr" path="res://player.tscn" id="1_pii5v"]
+[ext_resource type="PackedScene" uid="uid://daf3bpr0k3u4" path="res://npc.tscn" id="2_s4p3m"]
+
+[node name="Combat_totorial" type="Node2D"]
+
+[node name="Room" type="Room" parent="."]
+
+[node name="Player" parent="." instance=ExtResource("1_pii5v")]
+
+[node name="Npc" parent="." instance=ExtResource("2_s4p3m")]

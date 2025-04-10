@@ -117,13 +117,6 @@ void Player::handle_input(double delta)
         move_and_slide();               // Move character
     }
 
-    // set_sprite_animation();
-
-    // TODO : delete just using it to reset to 0,0 when i go out of thge map
-    if (input->is_key_pressed(KEY_R))
-    {
-        set_position(Vector2(20, 20));
-    }
 }
 
 void Player::load_sprites()
@@ -199,7 +192,7 @@ void Player::attack() {
     if (!player_sprite || is_attacking) return;
 
     is_attacking = true;
-    attack_timer = 1.7; // seconds to stay in attack animation
+    attack_timer = 1; // seconds to stay in attack animation
 
     if (last_valid_direction.x > 0) {
         player_sprite->play("attack_right");

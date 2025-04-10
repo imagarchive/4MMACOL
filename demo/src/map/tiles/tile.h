@@ -7,6 +7,7 @@
 #include <godot_cpp/classes/sprite2d.hpp>
 #include <godot_cpp/classes/collision_shape2d.hpp>
 #include <godot_cpp/classes/rectangle_shape2d.hpp>
+#include <godot_cpp/classes/area2d.hpp>
 #include <godot_cpp/classes/tile_set_atlas_source.hpp>
 
 #define FLOOR 1
@@ -22,12 +23,14 @@ class Tile : public StaticBody2D {
         int type;
         Sprite2D* sprite;
         CollisionShape2D* collision_tile;
-
+        
     public:
+        
         Tile();
         ~Tile();
 
         void _ready() override;
+        void _on_body_entered(Node2D *body);
         void set_tile_type(int new_type);
         void set_position(Vector2 position);
         void update_tile();

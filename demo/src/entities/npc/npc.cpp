@@ -91,6 +91,10 @@ void Npc::_physics_process(double delta){
         return;
     }
 
+    if (current_pos.distance_to(player->get_position()) > 800.0) {
+        return;
+    }
+
     if (path_to_player.size() < 2) {
         return;
     }

@@ -5,6 +5,9 @@
 #include <godot_cpp/classes/rectangle_shape2d.hpp>
 #include <godot_cpp/classes/tile_set_atlas_source.hpp>
 #include <godot_cpp/classes/tile_set.hpp>
+#include <godot_cpp/classes/area2d.hpp>
+#include <godot_cpp/classes/circle_shape2d.hpp>
+
 
 namespace godot {
 
@@ -29,7 +32,7 @@ void Tile::_ready() {
     collision_tile->set_shape(rectangle_shape);
     // Add collision shape to the entity
     add_child(collision_tile);
-
+    
     update_tile();
 }
 
@@ -56,27 +59,34 @@ void Tile::update_tile() {
 
     switch (type) {
         case FLOOR:
-            sprite->set_texture(loader->load("res://assets/32x32 Tiles/Glowing_Square_Tile.png"));
+            // sprite->set_texture(loader->load("res://assets/32x32 Tiles/Glowing_Square_Tile.png"));
+            sprite->set_texture(loader->load("res://assets/floor.png"));
             // No collision for floors, so set collision_shape to null
             collision_tile->set_disabled(true);
             break;
         case WALL:
-            sprite->set_texture(loader->load("res://assets/32x32 Tiles/Brick_wall.png"));
+            // sprite->set_texture(loader->load("res://assets/32x32 Tiles/Brick_wall.png"));
+            sprite->set_texture(loader->load("res://assets/wall.png"));
             // Ensure collision shape is present for walls
             collision_tile->set_disabled(false);
             break;
         case DOOR:
-            // sprite->set_texture(loader->load("res://door.png"));
+            sprite->set_texture(loader->load("res://assets/door.png"));
             collision_tile->set_disabled(false);
+             
+        
             break;
     }
 }
+
+
+
 
 void Tile::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_tile_type", "new_type"), &Tile::set_tile_type);
     ClassDB::bind_method(D_METHOD("set_position", "position"), &Tile::set_position);
     ClassDB::bind_method(D_METHOD("get_tile_type"), &Tile::get_tile_type);
-    ClassDB::bind_method(D_METHOD("update_tile"), &Tile::update_tile);
+    ClassDB::bind_method(D_METHOD("update_tile"), &Tile::update_tile); 
 }
 
 } // namespace godot
