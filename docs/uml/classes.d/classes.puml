@@ -1,36 +1,107 @@
 @startuml
 
+left to right direction
+skinparam ranksep 200
+
+hide enum methods
 hide struct methods
 skinparam linetype ortho
 
+package items
+{
+	interface Item
+}
+
 package map
 {
-	struct Castle
+	class Castle
 	{
 		+std::vector<Floor> levels
+		+std::string name
+		+std::string description
+		+void add_floor(Floor& __floor)
+		+void remove_floor(int __index)
+		+Floor* get_floor(int __index)
 	}
 
-	struct Floor
+	class Floor
 	{
 		+std::vector<Room> rooms
+		+int floor_number
+		+std::string description
+		+void add_room(Room& __room)
+		+void remove_room(int __index)
+		+Room* get_room(int __index)
 	}
 
-	struct Room
+	class Room
 	{
-		+std::vector<Tile> tiles
+		__ Fields __
+		-std::vector<std::vector<Tile *>> tiles
+		-int width
+		-int height
+		-std::string name
+		-std::string description
+		__ Methods __
+		+void initialize_room(int __room_width, int __room_height)
+		+Tile * get_tile(int __x, int __y)
+		+void set_tile(int __x, int __y, int __type)
+		+void update_room()
+		+void add_item(items.Item& __item, int __x, int __y)
+		+void remove_item(int __x, int __y)
+		+std::vector<items.Item*> get_items()
+		__ Constructors & Destructor __
+		+Room()
+		+Room(int __width, int height)
+		+~Room()
 	}
 
-	struct Save
+	class Save
 	{
 		+Castle castle
+		+std::string save_name
+		+std::time_t save_time
+		+void load_game()
+		+void save_game()
 	}
 
 	class Tile
+	{
+		__ Fields __
+		-TileType type
+		-Vector2 position
+		-bool is_walkable
+		-items.Item* item
+		__ Methods __
+		+int get_tile_type()
+		+void set_tile_type(int __new_type)
+		+void set_position(Vector2 __position)
+		+void update_tile()
+		+bool can_walk()
+		+void place_item(items.Item& __item)
+		+items.Item* get_item()
+		__ Constructors & Destructor __
+		+Tile()
+		+Tile(int __type)
+		+~Tile()
+	}
 
-	Castle --> Floor
-	Floor --> Room
-	Room --> Tile
-	Save --> Castle
+	enum TileType
+	{
+		FLOOR,
+		WALL,
+		DOOR,
+		STAIRS,
+		TRAP
+	}
+
+	Castle --> Floor : > contains
+	Floor --> Room : > contains
+	Room --> Tile : > contains
+	Room --> items.Item : > contains
+	Save --> Castle : > contains
+	Tile --> TileType : > has for type
+	Tile --> items.Item : > contains
 }
 
 package items
@@ -38,59 +109,279 @@ package items
 	class Consumable
 	{
 		+void consume(Player& __player)
+		+std::string get_name()
+		+std::string get_description()
+		+int get_effect_duration()
 	}
 
 	interface Item
+	{
+		+std::string get_name()
+		+std::string get_description()
+		+void use(Player& __player)
+	}
 
 	class Weapon
 	{
-		+std::uint8_t damage()
+		+int damage()
+		+std::string get_name()
+		+std::string get_description()
+		+void attack(Player& __player, Entity& __target)
+	}
+
+	class Sword
+	{
+		+int damage()
+		+void attack(Player& __player, Entity& __target)
+	}
+
+	class Bow
+	{
+		+int damage()
+		+void attack(Player& __player, Entity& __target)
+	}
+
+	class Staff
+	{
+		+int damage()
+		+void attack(Player& __player, Entity& __target)
+	}
+
+	class KeyItem
+	{
+		+void use(Player& __player)
+		+std::string get_name()
+		+std::string get_description()
+	}
+
+	class Armor
+	{
+		+int defense()
+		+std::string get_name()
+		+std::string get_description()
+		+void equip(Player& __player)
+		+void unequip(Player& __player)
+	}
+
+	class Helmet
+	{
+		+int defense()
+		+void equip(Player& __player)
+	}
+
+	class Chestplate
+	{
+		+int defense()
+		+void equip(Player& __player)
+	}
+
+	class Shield
+	{
+		+int defense()
+		+void equip(Player& __player)
 	}
 
 	Consumable --|> Item
 	Weapon --|> Item
-
+	KeyItem --|> Item
+	Armor --|> Item
+	Sword --|> Weapon
+	Bow --|> Weapon
+	Staff --|> Weapon
+	Helmet --|> Armor
+	Chestplate --|> Armor
+	Shield --|> Armor
 }
 
 package entities
 {
 	class Entity
 	{
-		-std::uint8_t life
-		__ Constructors __
-		+Entity()
-		+Entity(std::uint8_t life)
-		__ Life management __
+		__ HP management __
+		#int hp
+		#int max_hp
 		+bool is_alive()
 		+bool is_dead()
-		+std::uint8_t life()
-		+void damage(std::uint8_t __damages)
-		+void heal(std::uint8_t __points)
-		+void kill()
+		+void die()
+		+void take_damage(int __dmg_amount)
+		+void set_hp(int __value)
+		+int get_hp() const
+		__ Mana management __
+		#int mana
+		#int max_mana
+		+void set_mana(int __value)
+		+int get_mana() const
+		__ Speed fields __
+		-double speed
+		-double max_speed
+		__ Position fields __
+		-Vector2 position
+		+void set_position(Vector2 __new_position)
+		+Vector2 get_position() const
+		__ Inventory management __
+		-std::vector<items.Item *> inventory
+		+void add_item(items.Item& __item)
+		+void remove_item(items.Item& __item)
+		+std::vector<items.Item*> get_inventory()
+		__ Constructors & destructor __
+		+Entity()
+		+Entity(int life)
+		+~Entity()
 	}
 
 	class Hostile
 	{
 		+void attack(Entity& __target)
+		+void patrol()
+		+void chase(Player& __player)
+		+void idle()
 	}
 
 	class NPC
+	{
+		__ Fields __
+		-Player *player
+		-int grid_size
+		-bool is_attacking
+		-double attack_timer
+		-std::string dialogue
+		__ Methods __
+		+void find_path()
+		+void attack()
+		+void interact(Player& __player)
+		+std::string get_dialogue()
+		__ Constructor & destructor __
+		+NPC()
+		+~NPC()
+	}
 
 	class Passive
 	{
 		-std::string message
-		+std::string ask_with()
+		+std::string ask_with(Player& __player)
+		+void give_quest(Player& __player)
+		+void complete_quest(Player& __player)
 	}
 
 	class Player
+	{
+		__ Fields __
+		-std::vector<items.Item*> equipped_items
+		-int experience_points
+		-int level
+		__ Methods __
+		#void attack()
+		+void equip_item(items.Item& __item)
+		+void unequip_item(items.Item& __item)
+		+void gain_experience(int __xp)
+		+void level_up()
+		+void interact_with_npc(NPC& __npc)
+		+void pick_up_item(items.Item& __item)
+		+void drop_item(items.Item& __item)
+		__ Constructor & Destructor __
+		+Player()
+		+~Player()
+	}
+
+	struct PlayerModifiers
+	{
+		+float sprint_multiplier
+		+double attack_timer
+		+double hurt_timer
+		+void apply_modifiers(Player& __player)
+	}
+
+	struct PlayerStats
+	{
+		+int xp
+		+int max_xp
+		+int lvl
+		+void update_stats(Player& __player)
+	}
+
+	struct PlayerStatus
+	{
+		+bool is_attacking
+		+bool is_hurt
+		+void update_status(Player& __player)
+	}
+
+	class Quest
+	{
+		+std::string name
+		+std::string description
+		+std::vector<std::string> objectives
+		+bool is_completed
+		+void start_quest(Player& __player)
+		+void complete_quest(Player& __player)
+		+void add_objective(std::string __objective)
+		+void remove_objective(std::string __objective)
+	}
+
+	class QuestLog
+	{
+		+std::vector<Quest> quests
+		+void add_quest(Quest& __quest)
+		+void remove_quest(Quest& __quest)
+		+std::vector<Quest> get_active_quests()
+		+std::vector<Quest> get_completed_quests()
+	}
 
 	Hostile --|> NPC
 	NPC --|> Entity
-	Player --> items.Item
+	NPC -- Player : interacts with
+	Player --> items.Item : > uses
 	Player --|> Entity
+	Player o-- PlayerModifiers : < modifies
+	Player o-- PlayerStats : > has for stats
+	Player o-- PlayerStatus : > has for status
+	Player --> Quest : > accepts
+	Player o-- QuestLog : > has
 	Passive --|> NPC
+	QuestLog --> Quest : > references
 }
 
-class GameManager
+package game_management
+{
+	class GameManager
+	{
+		+void initialize_game()
+		+void update_game()
+		+void save_game(Save& __save)
+		+void load_game(Save& __save)
+		+void start_new_game()
+		+void end_game()
+	}
+
+	class InputManager
+	{
+		+void handle_input()
+		+void process_keyboard_input()
+		+void process_mouse_input()
+		+void process_controller_input()
+	}
+
+	class AudioManager
+	{
+		+void play_sound(std::string __sound_name)
+		+void play_music(std::string __music_name)
+		+void stop_sound()
+		+void stop_music()
+		+void set_volume(float __volume)
+	}
+
+	class RenderManager
+	{
+		+void render_frame()
+		+void render_entity(Entity& __entity)
+		+void render_tile(Tile& __tile)
+		+void render_ui()
+	}
+
+	GameManager --> map.Save : > saves
+	GameManager --> InputManager : > uses
+	GameManager --> AudioManager : > uses
+	GameManager --> RenderManager : > uses
+}
 
 @enduml
