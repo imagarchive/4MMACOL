@@ -87,11 +87,11 @@ package map
 
 	enum TileType
 	{
-		FLOOR,
-		WALL,
-		DOOR,
-		STAIRS,
-		TRAP
+		Floor,
+		Wall,
+		Door,
+		Stairs,
+		Trap
 	}
 
 	Castle --> Floor : > contains
