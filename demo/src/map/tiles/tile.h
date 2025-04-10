@@ -2,6 +2,8 @@
 #define TILE_H
 
 #include <godot_cpp/classes/node2d.hpp>
+#include <godot_cpp/classes/collision_object2d.hpp>
+#include <godot_cpp/classes/static_body2d.hpp>
 #include <godot_cpp/classes/sprite2d.hpp>
 #include <godot_cpp/classes/collision_shape2d.hpp>
 #include <godot_cpp/classes/rectangle_shape2d.hpp>
@@ -13,13 +15,13 @@
 
 namespace godot {
 
-class Tile : public Node2D {
-    GDCLASS(Tile, Node2D);
+class Tile : public StaticBody2D {
+    GDCLASS(Tile, StaticBody2D);
 
     private:
         int type;
         Sprite2D* sprite;
-        CollisionShape2D* collision_shape;
+        CollisionShape2D* collision_tile;
 
     public:
         Tile();

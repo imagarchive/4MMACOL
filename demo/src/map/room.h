@@ -33,6 +33,9 @@ public:
     // Update all tiles in the room
     void update_room();
 
+    int get_width();
+    int get_height();
+
 protected:
     static void _bind_methods();
 };

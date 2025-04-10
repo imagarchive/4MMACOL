@@ -16,10 +16,17 @@ class Player : public Entity {
         int exp;
         int max_xp;
         int lvl;
+
         bool is_attacking = false;
         double attack_timer = 0.0;
+
         bool is_hurt = false;
         double hurt_timer = 0.0;
+
+        bool is_dying = false;
+        double death_timer = 0.0;
+        // MAinly for animation purposes
+        Vector2 last_valid_direction = Vector2(0, 1); // Default facing down 
 
 
     protected:
@@ -33,6 +40,8 @@ class Player : public Entity {
         Player();
         ~Player();
         void hurt();
+        void take_damage(int dmg_amount=10);
+        void die() override;
         void _ready() override;
         void _process(double delta) override;
         void _physics_process(double delta);

@@ -22,7 +22,7 @@ Room::~Room() {
 
 void Room::_ready() {
     // 
-    initialize_room(50,50);
+    initialize_room(80,40);
 }
 
 void Room::initialize_room(int room_width, int room_height) {
@@ -42,16 +42,16 @@ void Room::initialize_room(int room_width, int room_height) {
             tiles[y][x] = tile;
             add_child(tile);
 
-            tile->set_position(Vector2(x * 32, y * 32));
+            tile->set_position(Vector2(x * 16, y * 16));
 
             // Borders are walls
             if (x == 0 || y == 0 || x == width - 1 || y == height - 1) {
                 tile->set_tile_type(WALL);
             }
-            // Middle walls (example: vertical line in center, horizontal cross)
-            else if ((x == width / 2) || (y == height / 2 && x >= width / 3 && x <= 2 * width / 3)) {
-                tile->set_tile_type(WALL);
-            }
+            // // Middle walls (example: vertical line in center, horizontal cross)
+            // else if ((x == width / 2) || (y == height / 2 && x >= width / 3 && x <= 2 * width / 3)) {
+            //     tile->set_tile_type(WALL);
+            // }
             else {
                 tile->set_tile_type(FLOOR);
             }
@@ -84,6 +84,14 @@ void Room::update_room() {
             tiles[y][x]->update_tile();
         }
     }
+}
+
+int Room::get_width(){
+    return width;
+}
+
+int Room::get_height(){
+    return height;
 }
 
 void Room::_bind_methods() {

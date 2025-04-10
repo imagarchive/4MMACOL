@@ -46,7 +46,7 @@ class Entity : public CharacterBody2D {
         virtual void _physics_process(double delta) override;
 
         void take_damage(int dmg_amount);
-        void die();
+        virtual void die();
         
         void set_hp(int value);
         int get_hp() const;

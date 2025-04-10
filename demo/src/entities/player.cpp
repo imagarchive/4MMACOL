@@ -1,9 +1,17 @@
 #include "player.h"
+#include "npc/npc.h"
+#include "../map/room.h"
+
 #include <godot_cpp/variant/vector2.hpp>
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/animated_sprite2d.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/sprite_frames.hpp>
+#include <godot_cpp/classes/scene_tree.hpp>
+#include <godot_cpp/classes/window.hpp> 
+#include <godot_cpp/classes/camera2d.hpp>
+#include <godot_cpp/classes/global_constants.hpp>
+
 
 
 using namespace godot;
@@ -15,9 +23,27 @@ Player::~Player() {}
 void Player::_ready()
 {   
     add_to_group("Players");
+    
+    // CAmera settings
+    Camera2D* camera = memnew(Camera2D);
+    add_child(camera);
+    camera->make_current();
+    camera->set_limit(SIDE_TOP, -16);
+    camera->set_limit(SIDE_LEFT, -16);
+    camera->set_limit(SIDE_RIGHT, 40*64-16);
+    camera->set_limit(SIDE_BOTTOM, 20*64-16);
+
+    camera->set_drag_margin(SIDE_TOP, 0.5);
+    camera->set_drag_margin(SIDE_LEFT, 0.5);
+    camera->set_drag_margin(SIDE_RIGHT, 0.5);
+    camera->set_drag_margin(SIDE_BOTTOM, 0.5);
+
+    camera->set_drag_horizontal_enabled(true);
+    camera->set_drag_vertical_enabled(true);
+
     load_sprites();
     Entity::_ready();
-    set_position(Vector2(400, 620));
+    set_position(Vector2(120, 120));
 }
 
 // processes what happens every frame, delta is used to
@@ -26,6 +52,20 @@ void Player::_ready()
 // math is mathing :b
 void Player::_process(double delta)
 {
+    if (is_dying) {
+        death_timer -= delta;
+        if (death_timer <= 0.0) {
+            // Animation finished, now handle player death
+            // For example, show game over screen or respawn
+            printf("Player death animation finished\n");
+            // is they existed we could use smething like :
+            // respawn(); // You would need to implement this
+            // get_tree()->call_deferred("reload_current_scene");
+            return;
+        }
+        return; // skip other logic while dying
+    }
+
     if (is_hurt) {
         hurt_timer -= delta;
         if (hurt_timer <= 0.0) {
@@ -72,6 +112,7 @@ void Player::handle_input(double delta)
     if (direction.length() > 0)
     {
         direction = direction.normalized();
+        last_valid_direction = direction;
         set_velocity(direction * speed); // Apply velocity
         move_and_slide();               // Move character
     }
@@ -135,20 +176,21 @@ void Player::hurt() {
     is_hurt = true;
     hurt_timer = 1.2; // duration in seconds
 
-    if (direction.x > 0) {
+    if (last_valid_direction.x > 0) {
         player_sprite->play("hurt_right");
     }
-    else if (direction.x < 0) {
+    else if (last_valid_direction.x < 0) {
         player_sprite->play("hurt_left");
     }
-    else if (direction.y > 0) {
+    else if (last_valid_direction.y > 0) {
         player_sprite->play("hurt_down");
     }
-    else if (direction.y < 0) {
+    else if (last_valid_direction.y < 0) {
         player_sprite->play("hurt_up");
     }
     else {
-        player_sprite->stop();
+        // Default hurt animation
+        player_sprite->play("hurt_down");
     }
 }
 
@@ -159,14 +201,76 @@ void Player::attack() {
     is_attacking = true;
     attack_timer = 1.7; // seconds to stay in attack animation
 
-    if (direction.x > 0) {
+    if (last_valid_direction.x > 0) {
         player_sprite->play("attack_right");
-    } else if (direction.x < 0) {
+    } else if (last_valid_direction.x < 0) {
         player_sprite->play("attack_left");
-    } else if (direction.y > 0) {
+    } else if (last_valid_direction.y > 0) {
         player_sprite->play("attack_down");
-    } else if (direction.y < 0) {
+    } else if (last_valid_direction.y < 0) {
         player_sprite->play("attack_up");
+    }
+
+    // --- ATTACK LOGIC ---
+    Array enemies = get_tree()->get_nodes_in_group("Enemies");
+    for (int i = 0; i < enemies.size(); i++) {
+        Npc* npc = Object::cast_to<Npc>(enemies[i]);
+        if (npc) {
+            Vector2 to_npc = npc->get_position() - get_position();
+
+            // Adjust range and direction to your liking
+            if (to_npc.length() < 64.0) {
+                // Optional: only attack in front of you
+                Vector2 facing = last_valid_direction.normalized();
+                if (facing.dot(to_npc.normalized()) > 0.5) {
+                    npc->take_damage(25);
+                    break; // only hit one NPC
+                }
+            }
+        }
+    }
+}
+
+void Player::die() {
+    printf("player dying\n");
+    if (!player_sprite || is_dying)
+        return;
+
+    is_dying = true;
+    death_timer = 1.5; // duration in seconds for death animation to play
+
+    // Play death animation based on the last direction
+    if (last_valid_direction.x > 0) {
+        player_sprite->play("die_right");
+    }
+    else if (last_valid_direction.x < 0) {
+        player_sprite->play("die_left");
+    }
+    else if (last_valid_direction.y > 0) {
+        player_sprite->play("die_down");
+    }
+    else if (last_valid_direction.y < 0) {
+        player_sprite->play("die_up");
+    }
+    else {
+        // Default death animation if no direction
+        player_sprite->play("die_down");
+    }
+    
+    // Game over or respawn logic goes here
+    // For example:
+    // get_tree()->call_deferred("reload_current_scene");
+    // Or show a game over screen
+}
+
+void Player::take_damage(int dmg_amount) {
+    Entity::take_damage(dmg_amount); // Call base class method
+    
+    // Check if we should die or just get hurt
+    if (get_hp() <= 0) {
+        die();
+    } else {
+        hurt();
     }
 }
 
@@ -178,5 +282,7 @@ void Player::_bind_methods()
     ClassDB::bind_method(D_METHOD("handle_input"), &Player::handle_input);
     ClassDB::bind_method(D_METHOD("hurt"), &Player::hurt);
     ClassDB::bind_method(D_METHOD("attack"), &Player::attack);
+    ClassDB::bind_method(D_METHOD("die"), &Player::die);
+    ClassDB::bind_method(D_METHOD("take_damage"), &Player::take_damage);
     // ClassDB::ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "animated_sprite", PROPERTY_HINT_RESOURCE_TYPE, "AnimatedSprite2D"),);
 }
