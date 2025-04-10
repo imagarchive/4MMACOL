@@ -1,0 +1,132 @@
+@startuml
+
+left to right direction
+skinparam ranksep 200
+
+hide enum methods
+hide struct methods
+skinparam linetype ortho
+
+package map
+{
+	class Room
+	{
+		__ Fields __
+		-std::vector<std::vector<Tile *>> tiles
+		-int width
+		-int height
+		__ Methods __
+		+void initialize_room(int __room_width, int __room_height)
+		+Tile * get_tile(int __x, int __y)
+		+void set_tile(int __x, int __y, int __type)
+		+void update_room()
+		__ Constructors & Destructor __
+		+Room()
+		+~Room()
+	}
+
+	class Tile
+	{
+		__ Fields __
+		-TileType type
+		__ Methods __
+		+int get_tile_type()
+		+void set_tile_type(int __new_type)
+		+void update_tile()
+		__ Constructors & Destructor __
+		+Tile()
+		+~Tile()
+	}
+
+	enum TileType
+	{
+		Floor,
+		Wall,
+		Door,
+		Stairs,
+		Trap
+	}
+
+	Room --> Tile : > contains
+	Tile --> TileType : > has for type
+}
+
+package entities
+{
+	class Entity
+	{
+		__ HP management __
+		#int hp
+		#int max_hp
+		+void die()
+		+void take_damage(int __dmg_amount)
+		+void set_hp(int __value)
+		+int get_hp() const
+		__ Speed fields __
+		-double speed
+		-double max_speed
+		__ Constructors & destructor __
+		+Entity()
+		+~Entity()
+	}
+
+	class Hostile
+
+	class NPC
+	{
+		__ Fields __
+		-Player *player
+		-int grid_size
+		-bool is_attacking
+		-double attack_timer
+		__ Methods __
+		+void find_path()
+		+void attack()
+		__ Constructor & destructor __
+		+NPC()
+		+~NPC()
+	}
+
+	class Player
+	{
+		__ Fields __
+		-PlayerModifiers player_modifiers
+		-PlayerStats player_stats
+		-PlayerStatus player_status
+		__ Methods __
+		#void attack()
+		__ Constructor & Destructor __
+		+Player()
+		+~Player()
+	}
+
+	struct PlayerModifiers
+	{
+		+float sprint_multiplier
+		+double attack_timer
+		+double hurt_timer
+	}
+
+	struct PlayerStats
+	{
+		+int xp
+		+int max_xp
+		+int lvl
+	}
+
+	struct PlayerStatus
+	{
+		+bool is_attacking
+		+bool is_hurt
+	}
+
+	Hostile --|> NPC
+	NPC --|> Entity
+	NPC -- Player : interacts with
+	Player --|> Entity
+	Player o-- PlayerModifiers : < modifies
+	Player o-- PlayerStats : > has for stats
+	Player o-- PlayerStatus : > has for status
+}
+
+@enduml
